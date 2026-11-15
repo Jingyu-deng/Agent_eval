@@ -9,13 +9,13 @@ dataset = EvaluationDataset(
             expected_output="A refund ticket for 30$ has been issued successfully",
             expected_tools=[
                 ToolCall(name="get_user_purchase_history",
-                         input_parameters={"user":"user123"}),
+                         input_parameters={"username":"user123"}),
                 ToolCall(name="get_today_date",
                                          input_parameters={}),
                 ToolCall(name="calculate_right_refund",
-                         input_parameters={"user":"user123","items":[{"name":"book"},{"name":"pen"}]}),
+                         input_parameters={"username":"user123","items":[{"name":"book"},{"name":"pen"}]}),
                 ToolCall(name="issue_refund_ticket",
-                         input_parameters={"user":"user123", "refund_amount": 30}),
+                         input_parameters={"username":"user123", "refund_amount": 30}),
                 
             ]
         ),
@@ -24,13 +24,13 @@ dataset = EvaluationDataset(
             expected_output="A refund ticket for 23$ has been issued successfully",
             expected_tools=[
                ToolCall(name="get_user_purchase_history",
-                         input_parameters={"user":"user123"}),
+                         input_parameters={"username":"user123"}),
                 ToolCall(name="get_today_date",
                                          input_parameters={}),
                 ToolCall(name="calculate_right_refund",
-                         input_parameters={"user":"user123","items":[{"name":"book"}]}),
+                         input_parameters={"username":"user123","items":[{"name":"book"}]}),
                 ToolCall(name="issue_refund_ticket",
-                         input_parameters={"user":"user123", "refund_amount": 23}),
+                         input_parameters={"username":"user123", "refund_amount": 23}),
                 
             ]
         ),
@@ -39,7 +39,7 @@ dataset = EvaluationDataset(
             expected_output="no refund tickets were issued only a list of what they bought",
             expected_tools=[
                ToolCall(name="get_user_purchase_history",
-                         input_parameters={"user":"user123"}),
+                         input_parameters={"username":"user123"}),
             ]
         ),
         Golden(
@@ -47,7 +47,7 @@ dataset = EvaluationDataset(
             expected_output="tell the user that the username is not valid and ask for username again before giving info about a refund",
             expected_tools=[
                ToolCall(name="get_user_purchase_history",
-                         input_parameters={"user":"user999"}),
+                         input_parameters={"username":"user999"}),
             ]
         ),
         Golden(
@@ -55,7 +55,7 @@ dataset = EvaluationDataset(
             expected_output="no refund given because it is outside of the 30 days guideline",
             expected_tools=[
                ToolCall(name="get_user_purchase_history",
-                         input_parameters={"user":"user126"}),
+                         input_parameters={"username":"user126"}),
                 ToolCall(name="get_today_date",
                          input_parameters={})
             ]
@@ -65,13 +65,15 @@ dataset = EvaluationDataset(
             expected_output="A refund ticket for 45$ has been issued successfully only for the backpack. the water_bottle is not eligible for a refund because it is outside 30 days refund policy",
             expected_tools=[
                ToolCall(name="get_user_purchase_history",
-                         input_parameters={"user":"user126"}),
+                         input_parameters={"username":"user126"}),
                 ToolCall(name="get_today_date",
                          input_parameters={}),
                 ToolCall(name="calculate_right_refund",
-                         input_parameters={"user":"user126","items":[{"name":"backpack"}]}),
+                         # The agent checks every requested item; the tool
+                         # reports that the water_bottle is outside the window.
+                         input_parameters={"username":"user126","items":[{"name":"backpack"},{"name":"water_bottle"}]}),
                 ToolCall(name="issue_refund_ticket",
-                         input_parameters={"user":"user126", "refund_amount": 45}),
+                         input_parameters={"username":"user126", "refund_amount": 45}),
 
             ]
         ),
@@ -80,7 +82,7 @@ dataset = EvaluationDataset(
             expected_output="no refund was given because you didn't purchase this item",
             expected_tools=[
                ToolCall(name="get_user_purchase_history",
-                         input_parameters={"user":"user126"}),
+                         input_parameters={"username":"user126"}),
             ]
         ),
     ]
