@@ -39,11 +39,18 @@ agent/                 The refund agent
   objects.py           Structured response models (Answer, PurchaseItem)
   tools.py             Tool implementations
   data.py              Sample user/purchase data
-evaluations/           DeepEval evaluation suite
-  dataset.py           7 golden test cases with expected tool calls
-  model.py             Judge model (DeepSeek via DeepEval)
-  task_completion.py   Runs the agent on each golden and scores it
-src/agent_eval/        Python package stub
+evaluations/                DeepEval evaluation suite
+  dataset.py                7 golden test cases with expected outputs/tool calls
+  model.py                  Judge model (DeepSeek via DeepEval; loads .env)
+  eval_all.py               Runs all seven metrics in one go
+  task_completion.py        TaskCompletionMetric
+  answer_correctness.py     GEval answer correctness
+  argument_correctness.py   ArgumentCorrectnessMetric
+  tool_correctness.py       ToolCorrectnessMetric
+  plan_adherence.py         PlanAdherenceMetric
+  plan_quality.py           PlanQualityMetric
+  step_efficiency.py        StepEfficiencyMetric
+src/agent_eval/             Python package stub
 ```
 
 ## Setup
@@ -74,14 +81,41 @@ uv run python agent.py
 
 ## Run the evaluations
 
-The evaluation script scores the agent with `TaskCompletionMetric` (threshold `0.8`),
-judged by DeepSeek. It prints a per-test-case pass/fail table and an aggregate report;
-run artifacts are written to `evaluations/.deepeval/` and are git-ignored.
+Each script in `evaluations/` runs the agent against the 7 goldens and scores one
+metric, printing a per-test-case table and an aggregate report. Run them from the
+`evaluations/` directory (the scripts use flat imports):
 
 ```bash
 cd evaluations
-uv run python task_completion.py
+
+uv run python task_completion.py      # TaskCompletionMetric
+uv run python argument_correctness.py # ArgumentCorrectnessMetric
+uv run python tool_correctness.py     # ToolCorrectnessMetric
+uv run python answer_correctness.py   # GEval answer correctness
+uv run python plan_adherence.py       # PlanAdherenceMetric
+uv run python plan_quality.py         # PlanQualityMetric
+uv run python step_efficiency.py      # StepEfficiencyMetric
 ```
+
+`eval_all.py` runs all seven metrics against a single set of agent responses:
+
+```bash
+uv run python eval_all.py
+```
+
+The agentic metrics (`TaskCompletionMetric`, `PlanQualityMetric`, `PlanAdherenceMetric`,
+`StepEfficiencyMetric`) need the LangGraph trace captured by DeepEval's
+`CallbackHandler`; the others score the structured `Answer` directly.
+
+Notes:
+
+- The judge model is `deepseek-v4-flash`, set in `evaluations/model.py`. The file loads
+  `.env` before constructing the model, so the scripts work from any directory.
+- Evaluation runs cost API credits — each golden is a full agent conversation plus
+  several judge calls.
+- Concurrency is capped at 4 (`AsyncConfig(max_concurrent=4)`) because this DeepSeek
+  account allows 5 concurrent requests; DeepEval's default of 20 triggers HTTP 429.
+- Run artifacts are written to `evaluations/.deepeval/` and are git-ignored.
 
 ## Notes
 
